@@ -17,22 +17,8 @@ local Tab = Window:Tab({
 
 local TabSection = Tab:Section({
         Title = "Auto Instant fishing", -- Section title
-    })
-
-Slider:SetTitle("Title Example")
-TabSection:Slider({
-    Title = "Delay",
-    Desc = "Slider Description",
-    Icon = "activity",
-    Min = 0,
-    Max = 100,
-    Default = 50, -- default value
-    Increment = 1, -- amount to increment by
-    Suffix = "units", -- optional
-    Callback = function(value) 
-        print("Slider Changed to " .. tostring(value))
-    
-
+})
+  
 
 TabSection:Toggle({
     Title = "Toggle",
