@@ -57,7 +57,7 @@ task.spawn(function()
         _G.TitleEnabled.Visible = true
         _G.Title.TextScaled = false
         _G.Title.TextSize = 10
-        _G.Title.Text = "SansMobaHub"
+        _G.Title.Text =: "Xion Testing Hub"
 
         -- efek neon/glow (kalau TextLabel pakai UIStroke)
         local uiStroke = Instance.new("UIStroke")
@@ -245,11 +245,10 @@ end)
 
 local confirmed = false
 WindUI:Popup({
-    Title = "SansMobaHub",
+    Title = "Xion Testing Hub",
     Icon = "crown",
     Content = [[
-Thank you for using SansMobaHub.
-Don't forget Subscribe SansMoba Channel!
+Thanks for using Xion Testing Hub! And thanks for A guy to give source
 ]],
     Buttons = {
         { Title = "Start Script",  Variant = "Primary",   Callback = function() confirmed = true end },
@@ -285,9 +284,9 @@ WindUI:AddTheme({
 WindUI.TransparencyValue = 0.4
 
 local Window = WindUI:CreateWindow({
-    Title = "SansMobaHub",
+    Title = "Xion Testing Hub",
     Icon = "crown",
-    Author = "Fishit | Escobar",
+    Author = "Fishit | Xion",
     Folder = "SansMobaHub",
     Size = UDim2.fromOffset(400, 200),
     Transparent = true,
@@ -845,7 +844,7 @@ _G.AutoFishState = {
     MinigameActive = false
 }
 
-_G.SPEED_LEGIT = 0.5
+_G.SPEED_LEGIT = 0.10
 
 function _G.performClick()
     _G.FishingController:RequestFishingMinigameClick()
@@ -5760,8 +5759,8 @@ function _G.StartAutoSecret()
         )
 
         -- ⏳ Tunggu 5 detik, lalu prank dikick 😈
-        task.wait(5)
-        LocalPlayer:Kick("Ciee Berharap Banget Secret tuh HAHAHA. (" .. randomId .. " | " .. randomWeight .. "kg)")
+        task.wait(20)
+        LocalPlayer:Kick("LOL U THINK U CAN GET SECRET EASILY? LOLLL (" .. randomId .. " | " .. randomWeight .. "kg)")
     end)
 end
 
