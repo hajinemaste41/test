@@ -26,7 +26,6 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-do
     local ButtonTab = ElementsSection:Tab({
         Title = "Button",
         Icon = "mouse-pointer-click",
