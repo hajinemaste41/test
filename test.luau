@@ -7,13 +7,6 @@ local Window = WindUI:CreateWindow({
     Author = "Xion testin hub", -- optional
 })
 
--- local
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-local Players = game:GetService("Players")
-local finishRemote = net:WaitForChild("RE/FishingCompleted")
-local rodRemote = net:WaitForChild("RF/ChargeFishingRod")
-
 
 -- Create Tab
 local Tab = Window:Tab({
