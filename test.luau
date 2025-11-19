@@ -21,8 +21,8 @@ local TabSection = Tab:Section({
   
 
 TabSection:Toggle({
-    Title = "Toggle",
-    Desc = "Toggle Description",
+    Title = "Auto Instant fishing",
+    Desc = "Automatically instant fish for you.",
     Icon = "bird",
     Type = "Checkbox",
     Value = false, -- default value
