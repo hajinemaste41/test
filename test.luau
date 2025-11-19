@@ -57,7 +57,7 @@ task.spawn(function()
         _G.TitleEnabled.Visible = true
         _G.Title.TextScaled = false
         _G.Title.TextSize = 10
-        _G.Title.Text =: "Xion Testing Hub"
+        _G.Title.Text = "Xion Testin Hub"
 
         -- efek neon/glow (kalau TextLabel pakai UIStroke)
         local uiStroke = Instance.new("UIStroke")
@@ -243,21 +243,6 @@ task.spawn(function()
 end)
 
 
-local confirmed = false
-WindUI:Popup({
-    Title = "Xion Testing Hub",
-    Icon = "crown",
-    Content = [[
-Thanks for using Xion Testing Hub! And thanks for A guy to give source
-]],
-    Buttons = {
-        { Title = "Start Script",  Variant = "Primary",   Callback = function() confirmed = true end },
-    }
-})
-
-repeat task.wait() until confirmed
-
-
 -------------------------------------------
 ----- =======[ LOAD WINDOW ]
 -------------------------------------------
@@ -284,9 +269,9 @@ WindUI:AddTheme({
 WindUI.TransparencyValue = 0.4
 
 local Window = WindUI:CreateWindow({
-    Title = "Xion Testing Hub",
+    Title = "XION TESTIN HUB",
     Icon = "crown",
-    Author = "Fishit | Xion",
+    Author = "Fishit | Xion X A Guy",
     Folder = "SansMobaHub",
     Size = UDim2.fromOffset(400, 200),
     Transparent = true,
@@ -303,7 +288,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:EditOpenButton({
-    Title = "SansMobaHub",
+    Title = "XION TESTIN HUB",
     Icon = "star",
     CornerRadius = UDim.new(0,30),
     StrokeThickness = 2,
@@ -321,7 +306,7 @@ local myConfig = ConfigManager:CreateConfig("SansXConfig")
 WindUI:SetNotificationLower(true)
 
 WindUI:Notify({
-    Title = "SansMobaHub",
+    Title = "Xion Testin Hub",
     Content = "All Features Loaded!",
     Duration = 5,
     Image = "square-check-big"
@@ -408,12 +393,10 @@ Home:Section({
 })
 
 Home:Paragraph({
-	Title = "SansMobaHub",
+	Title = "Xion Testin Hub",
 	Color = "Grey",
 	Desc = [[
-This is a script created by Escobar!.
-YouTube Channel = SansMoba
-use the script wisely.
+This is a beta script Xion X A Guy collaboration for testing purposes.
 ]]
 })
 
@@ -844,7 +827,7 @@ _G.AutoFishState = {
     MinigameActive = false
 }
 
-_G.SPEED_LEGIT = 0.10
+_G.SPEED_LEGIT = 0.5
 
 function _G.performClick()
     _G.FishingController:RequestFishingMinigameClick()
@@ -5759,8 +5742,8 @@ function _G.StartAutoSecret()
         )
 
         -- ⏳ Tunggu 5 detik, lalu prank dikick 😈
-        task.wait(20)
-        LocalPlayer:Kick("LOL U THINK U CAN GET SECRET EASILY? LOLLL (" .. randomId .. " | " .. randomWeight .. "kg)")
+        task.wait(5)
+        LocalPlayer:Kick("Ciee Berharap Banget Secret tuh HAHAHA. (" .. randomId .. " | " .. randomWeight .. "kg)")
     end)
 end
 
