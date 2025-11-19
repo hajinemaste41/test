@@ -15,7 +15,11 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-local MainTabToggle = Tab:Toggle({
+local TabSection = Tab:Section({
+        Title = "About WindUI",
+    })
+    
+TabSection:Toggle({
     Title = "Toggle",
     Desc = "Toggle Description",
     Icon = "bird",
