@@ -7,8 +7,27 @@ local Window = WindUI:CreateWindow({
     Author = "Xion testin hub", -- optional
 })
 
+
+-- Create Tab
 local Tab = Window:Tab({
     Title = "Main", -- Tab title
     Icon = "crown", -- optional
     Locked = false,
+})
+
+local Tab2 = Window:Tab({
+    Title = "Teleport", -- Tab title
+    Icon = "crown", -- optional
+    Locked = false,
+})
+
+local MainTabToggle = Tab:Toggle({
+    Title = "Toggle",
+    Desc = "Toggle Description",
+    Icon = "bird",
+    Type = "Checkbox",
+    Value = false, -- default value
+    Callback = function(state) 
+        print("Toggle Activated" .. tostring(state))
+    end
 })
