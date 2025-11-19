@@ -15,12 +15,6 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-local Tab2 = Window:Tab({
-    Title = "Teleport", -- Tab title
-    Icon = "crown", -- optional
-    Locked = false,
-})
-
 local MainTabToggle = Tab:Toggle({
     Title = "Toggle",
     Desc = "Toggle Description",
