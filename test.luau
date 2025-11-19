@@ -1,3 +1,8 @@
+-- load wind ui
+local Version = "1.6.41"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
+
+
 local Window = WindUI:CreateWindow({
     Title = "Xion Testin hub", -- Window title
     Icon = "door-open", -- lucide icon
