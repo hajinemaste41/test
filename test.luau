@@ -57,7 +57,7 @@ task.spawn(function()
         _G.TitleEnabled.Visible = true
         _G.Title.TextScaled = false
         _G.Title.TextSize = 10
-        _G.Title.Text = "Xion Testin Hub"
+        _G.Title.Text = "Xion Testin hub"
 
         -- efek neon/glow (kalau TextLabel pakai UIStroke)
         local uiStroke = Instance.new("UIStroke")
@@ -221,26 +221,17 @@ local function checkStatus()
     if response == "UPDATE" then
         if not CheckData.kicked then
             CheckData.kicked = true
-            LocalPlayer:Kick("SansMobaHub Update,Rejoin Ulang Dan Execute Lagi!.")
+            LocalPlayer:Kick("Xion Testin hub Update,Rejoin Ulang Dan Execute Lagi!.")
         end
     elseif response == "LATEST" then
         if not CheckData.notified then
             CheckData.notified = true
-            warn("[SansMobaHub] Status: Latest version")
+            warn("[Xion Testin Hub] Status: Latest version")
         end
     else
-        warn("[SansMobaHub] Status unknown:", response)
+        warn("[Xion Testin hub] Status unknown:", response)
     end
 end
-
-checkStatus()
-
-task.spawn(function()
-    while not CheckData.kicked do
-        task.wait(CheckData.interval)
-        checkStatus()
-    end
-end)
 
 
 -------------------------------------------
@@ -269,9 +260,9 @@ WindUI:AddTheme({
 WindUI.TransparencyValue = 0.4
 
 local Window = WindUI:CreateWindow({
-    Title = "XION TESTIN HUB",
+    Title = "Xion Testin hub",
     Icon = "crown",
-    Author = "Fishit | Xion X A Guy",
+    Author = "Xion X A guy",
     Folder = "SansMobaHub",
     Size = UDim2.fromOffset(400, 200),
     Transparent = true,
@@ -288,7 +279,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:EditOpenButton({
-    Title = "XION TESTIN HUB",
+    Title = "Xion Testin hub",
     Icon = "star",
     CornerRadius = UDim.new(0,30),
     StrokeThickness = 2,
@@ -306,7 +297,7 @@ local myConfig = ConfigManager:CreateConfig("SansXConfig")
 WindUI:SetNotificationLower(true)
 
 WindUI:Notify({
-    Title = "Xion Testin Hub",
+    Title = "Xion Testin hub",
     Content = "All Features Loaded!",
     Duration = 5,
     Image = "square-check-big"
@@ -319,6 +310,11 @@ WindUI:Notify({
 local Home = Window:Tab({
     Title = "Developer Info",
     Icon = "hard-drive"
+})
+
+_G.ServerPage = Window:Tab({
+    Title = "Server List",
+    Icon = "server"
 })
 
 local AllMenu = Window:Section({
@@ -388,10 +384,10 @@ Home:Section({
 })
 
 Home:Paragraph({
-	Title = "Xion Testin Hub",
+	Title = "Xion Testin hub",
 	Color = "Grey",
 	Desc = [[
-This is a beta script Xion X A Guy collaboration for testing purposes.
+TEST TEST FOR PURPOSE ONLY
 ]]
 })
 
@@ -950,7 +946,26 @@ _G.StuckDelay = _G.FishSec:Input({
 
 myConfig:Register("StuckDelay", _G.StuckDelay)
 
+_G.HighFish = _G.FishSec:Toggle({
+    Title = "Filter Fish Quality",
+    Desc = "Skip Common, Uncommon, & Rare",
+    Value = _G.AutoFishHighQuality,
+    Callback = function(state)
+        _G.AutoFishHighQuality = state
+    end
+})
+myConfig:Register("FishHigh", _G.HighFish)
 
+_G.AutoFishes = _G.FishSec:Toggle({
+    Title = "Auto Fish Instant",
+    Callback = function(value)
+        if value then
+            StartAutoFish5X()
+        else
+            StopAutoFish5X()
+        end
+    end
+})
 myConfig:Register("AutoFishing", _G.AutoFishes)
 
 _G.FishSec:Space()
@@ -1135,8 +1150,9 @@ function sellAllFishes()
     local sellRemote = net:WaitForChild("RF/SellAllItems")
 
     task.spawn(function()
+        NotifyInfo("Selling...", "I'm going to sell all the fish, please wait...", 3)
 
-        task.wait(0.5)
+        task.wait(1)
         local success, err = pcall(function()
             sellRemote:InvokeServer()
         end)
@@ -1961,6 +1977,7 @@ _G.FarmSec:Toggle({
         end
     end
 })
+
 
 function _G.OnCountdownChanged()
     
@@ -3378,19 +3395,15 @@ Trade:Toggle({
                         "Progress: %d/%d | Sent: %s | Success: %d | Failed: %d",
                         i, tradeState.tradeAmount, success and "âœ…" or "âŒ", successCount, failCount))
                     
-                    task.wait(5)
+                    task.wait(5) 
                 end
 
-                -- 5. Laporan akhir
-                local finalSummary = string.format(
-                    "Process Complete.\nTotal Attempted: %d of %d found.\nSuccessful: %d | Failed: %d", 
-                    amountToSend, totalFound, successCount, failCount
-                )
-                -- ===================================
+                statusParagraphV2:SetDesc(string.format(
+                    "Trade V2 Process Complete.\nSuccessful: %d | Failed: %d",
+                    successCount, failCount))
 
-                V3_StatusParagraph:SetDesc(finalSummary)
-                NotifySuccess("Mass Category Trade", finalSummary, 7)
-                pcall(V3_StartToggle.SetValue, V3_StartToggle, false)
+                tradeState.autoTradeV2 = false
+                refreshInventory()
             end)
         end
     end
@@ -3407,8 +3420,296 @@ for _, element in ipairs(_G.TradeQuietElements) do
 end
 
 -------------------------------------------
------ =======[ DELETED DOUBLE ENCHANT STONES ]
+----- ======= V3 - MASS TRADE BY CATEGORY
 -------------------------------------------
+
+
+if Trade and GlobalFav and GlobalFav.Variants and NotifyWarning and _G.Replion and _G.ItemUtility and _G.ItemStringUtility and InitiateTrade then
+    
+    _G.TradeV3Elements = {}
+
+    local V3_Section = Trade:Section({Title = "V3 - Mass Trade by Category"})
+    table.insert(_G.TradeV3Elements, {Element = V3_Section}) -- Daftarkan UI
+
+    -- Data yang diperlukan untuk Tiers
+    local tierMap = {
+        ["Common"] = 1, ["Uncommon"] = 2, ["Rare"] = 3, ["Epic"] = 4,
+        ["Legendary"] = 5, ["Mythic"] = 6, ["SECRET"] = 7
+    }
+    local tierNames = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "SECRET" }
+
+    -- Data yang diperlukan untuk Variants (Mutasi)
+    local variantNames = {}
+    for vName, _ in pairs(GlobalFav.Variants) do
+        table.insert(variantNames, vName)
+    end
+    if not table.find(variantNames, "Shiny") then
+        table.insert(variantNames, "Shiny")
+    end
+    table.sort(variantNames)
+    
+    -- State untuk V3
+    -- State untuk V3
+    local categoryTradeState = {
+        selectedTiers = {}, selectedVariants = {},
+        filterUnfavorited = false, autoTrade = false,
+        tradeAmount = 0 -- TAMBAHKAN BARIS INI
+    }
+    -- UI V3
+    local V3_TierDropdown = Trade:Dropdown({
+        Title = "Select Tiers (Rarity) to Trade",
+        Values = tierNames, Multi = true, AllowNone = true,
+        Callback = function(selectedNames)
+            categoryTradeState.selectedTiers = {}
+            for _, name in ipairs(selectedNames or {}) do
+                if tierMap[name] then table.insert(categoryTradeState.selectedTiers, tierMap[name]) end
+            end
+            NotifyInfo("Trade V3", "Tiers to trade: " .. table.concat(selectedNames, ", "))
+        end
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_TierDropdown}) -- Daftarkan UI
+
+    local V3_VariantDropdown = Trade:Dropdown({
+        Title = "Select Mutations (Variants) to Trade",
+        Values = variantNames, Multi = true, AllowNone = true,
+        Callback = function(selectedNames)
+            categoryTradeState.selectedVariants = selectedNames or {}
+            NotifyInfo("Trade V3", "Mutations to trade: " .. table.concat(selectedNames, ", "))
+        end
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_VariantDropdown}) -- Daftarkan UI
+
+    local V3_FilterToggle = Trade:Toggle({
+        Title = "Filter Unfavorited Items Only",
+        Desc = "Hanya mengirim item yang tidak di-lock (favorite).", Value = false,
+        Callback = function(val)
+            categoryTradeState.filterUnfavorited = val
+            NotifyInfo("Trade V3", "Filter Unfavorited: " .. tostring(val))
+        end
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_FilterToggle}) -- Daftarkan UI
+    
+    -- ===================================
+    -- == [BARU] INPUT AMOUNT UNTUK V3
+    -- ===================================
+    local V3_AmountInput = Trade:Input({
+        Title = "Amount to Trade",
+        Placeholder = "Enter amount...",
+        Type = "Input",
+        Callback = function(val)
+            categoryTradeState.tradeAmount = tonumber(val) or 0
+        end
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_AmountInput})
+
+    local V3_StatusParagraph = Trade:Paragraph({
+        Title = "Status V3", Desc = "Waiting to start..."
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_StatusParagraph}) -- Daftarkan UI
+
+    local V3_StartToggle = Trade:Toggle({
+        Title = "Start Mass Category Trade", Value = false,
+        Callback = function(value)
+            categoryTradeState.autoTrade = value
+            if not value then V3_StatusParagraph:SetDesc("Stopping..."); return end
+
+            task.spawn(function()
+                -- 1. Validasi
+                if not tradeState.selectedPlayerId then
+                    V3_StatusParagraph:SetDesc("Error: Please select a player from the 'Select Trade Target' dropdown above.")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+                if #categoryTradeState.selectedTiers == 0 and #categoryTradeState.selectedVariants == 0 then
+                    V3_StatusParagraph:SetDesc("Error: Select at least one Tier or Mutation to trade.")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+                
+                -- ===================================
+                -- == [BARU] VALIDASI AMOUNT V3
+                -- ===================================
+                if categoryTradeState.tradeAmount <= 0 then
+                    V3_StatusParagraph:SetDesc("Error: Please enter a valid amount in the 'Amount to Trade (V3)' input.")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+                -- ===================================
+
+                local DataReplion = _G.Replion.Client:WaitReplion("Data")
+                if not DataReplion then
+                    V3_StatusParagraph:SetDesc("Error: Could not get player data (Replion).")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+
+                -- 2. Scan inventaris
+                V3_StatusParagraph:SetDesc("Scanning inventory for matching items..."); task.wait(0.5)
+                local uuidsToSend, itemNamesSummary = {}, {}
+                local inventoryItems = DataReplion:Get({ "Inventory", "Items" })
+                if not inventoryItems then
+                    V3_StatusParagraph:SetDesc("Error: Inventory is empty.")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+
+                -- 3. Filter item (Logika ini tetap sama)
+                for _, itemData in ipairs(inventoryItems) do
+                    if not categoryTradeState.autoTrade then break end
+                    if not (categoryTradeState.filterUnfavorited and itemData.Favorited) then
+                        local baseItemData = _G.ItemUtility:GetItemData(itemData.Id)
+                        if baseItemData and baseItemData.Data and baseItemData.Data.Type == "Fish" then
+                            local match = false
+                            if #categoryTradeState.selectedTiers > 0 then
+                                if baseItemData.Data.Tier and table.find(categoryTradeState.selectedTiers, baseItemData.Data.Tier) then match = true end
+                            end
+                            if not match and #categoryTradeState.selectedVariants > 0 then
+                                if itemData.Metadata and type(itemData.Metadata) == "table" then
+                                    local itemMutations = {}
+                                    if itemData.Metadata.VariantId then table.insert(itemMutations, itemData.Metadata.VariantId) end
+                                    if itemData.Metadata.Shiny == true then table.insert(itemMutations, "Shiny") end
+                                    for _, itemMutationName in ipairs(itemMutations) do
+                                        if table.find(categoryTradeState.selectedVariants, itemMutationName) then match = true; break end
+                                    end
+                                end
+                            end
+                            if match then
+                                table.insert(uuidsToSend, itemData.UUID)
+                                local simpleName = _G.ItemStringUtility.GetItemName(itemData, baseItemData)
+                                itemNamesSummary[simpleName] = (itemNamesSummary[simpleName] or 0) + 1
+                            end
+                        end
+                    end
+                end
+
+                if not categoryTradeState.autoTrade then V3_StatusParagraph:SetDesc("Trade stopped during scan."); return end
+                if #uuidsToSend == 0 then
+                    V3_StatusParagraph:SetDesc("Complete: No matching items found to trade.")
+                    pcall(V3_StartToggle.SetValue, V3_StartToggle, false); return
+                end
+
+                -- ===================================
+                -- == [DIUBAH] LOGIKA PENGIRIMAN ITEM DENGAN AMOUNT
+                -- ===================================
+                
+                -- 4. Kirim item
+                local totalFound = #uuidsToSend
+                -- Gunakan math.min untuk mengambil jumlah yang lebih kecil antara yang ditemukan dan yang diminta
+                local amountToSend = math.min(totalFound, categoryTradeState.tradeAmount) 
+                local successCount, failCount = 0, 0
+                local targetName = tradeState.selectedPlayerName
+
+                -- Ubah loop dari 'ipairs' menjadi loop numerik sampai 'amountToSend'
+                for i = 1, amountToSend do
+                    if not categoryTradeState.autoTrade then V3_StatusParagraph:SetDesc("Trade stopped by user."); break end
+                    
+                    local uuid = uuidsToSend[i] -- Ambil UUID berdasarkan index
+                    
+                    -- Update status untuk menunjukkan progress, amount, dan total yang ditemukan
+                    V3_StatusParagraph:SetDesc(string.format(
+                        "Progress: %d/%d (Found: %d)\nSending to: %s\nSuccess: %d | Failed: %d", 
+                        i, amountToSend, totalFound, targetName, successCount, failCount
+                    ))
+                    
+                    local success, result = pcall(InitiateTrade.InvokeServer, InitiateTrade, tradeState.selectedPlayerId, uuid)
+                    if success and result then successCount = successCount + 1 else failCount = failCount + 1 end
+                    task.wait(5)
+                end
+
+                -- 5. Laporan akhir
+                local finalSummary = string.format(
+                    "Process Complete.\nTotal Attempted: %d of %d found.\nSuccessful: %d | Failed: %d", 
+                    amountToSend, totalFound, successCount, failCount
+                )
+                -- ===================================
+
+                V3_StatusParagraph:SetDesc(finalSummary)
+                NotifySuccess("Mass Category Trade", finalSummary, 7)
+                pcall(V3_StartToggle.SetValue, V3_StartToggle, false)
+            end)
+        end
+    })
+    table.insert(_G.TradeV3Elements, {Element = V3_StartToggle}) -- Daftarkan UI
+
+
+else
+    task.spawn(function()
+        task.wait(2)
+        NotifyError("Trade V3 Load Error", "Gagal memuat fitur Trade V3. Dependensi penting (seperti Trade atau GlobalFav) tidak ditemukan. Anda mungkin salah menempelkan kode atau skrip QuietXHub Anda tidak lengkap.", 10)
+    end)
+end
+
+-------------------------------------------
+----- =======[ DOUBLE ENCHANT STONES ]
+-------------------------------------------
+
+_G.DStones:Paragraph({
+    Title = "Guide",
+    Color = "Green",
+    Desc = [[
+TUTORIAL FOR DOUBLE ENCHANT
+
+1. "Enabled Double Enchant" first
+2. Hold your "SECRET" fish, then click "Get Enchant Stone"
+3. Click "Double Enchant Rod" to do Double Enchant, and don't forget to place the stone in slot 5
+
+Good Luck!
+]]
+})
+
+_G.ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+_G.DStones:Space()
+
+_G.DStones:Button({
+    Title = "Enable Double Enchant",
+    Locked = false,
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        _G.ActivateDoubleEnchant = _G.ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net
+        ["RE/ActivateSecondEnchantingAltar"]
+        if _G.ActivateDoubleEnchant then
+            _G.ActivateDoubleEnchant:FireServer()
+            NotifySuccess("Double Enchant", "Double Enchant Enabled for Rods")
+        else
+            warn("Cant find Double Enchant functions")
+        end
+    end
+})
+
+_G.DStones:Space()
+
+_G.DStones:Button({
+    Title = "Get Enchant Stones",
+    Locked = false,
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        _G.CreateTranscendedStone = _G.ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net
+        ["RF/CreateTranscendedStone"]
+        if _G.CreateTranscendedStone then
+            local result = _G.CreateTranscendedStone:InvokeServer()
+            NotifySuccess("Double Enchant", "Got Enchant Stone!")
+        else
+            warn("[] Tidak dapat menemukan RemoteFunction CreateTranscendedStone.")
+        end
+    end
+})
+
+_G.DStones:Space()
+
+_G.DStones:Button({
+    Title = "Double Enchant Rod",
+    Desc = "Hold the stone in slot 5",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        _G.ActiveStone = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net
+        ["RE/ActivateSecondEnchantingAltar"]
+        if _G.ActiveStone then
+            local result = _G.ActiveStone:FireServer()
+            NotifySuccess("Double Enchant", "Enchanting....")
+        else
+            warn("Error something")
+        end
+    end
+})
 
 
 -------------------------------------------
@@ -3817,8 +4118,8 @@ function _G.StartAutoTotem()
             end
 
             -- Clean name dari "(x5)" → "Luck Totem"
-            local cleanName = rawName:match("^(.-) %(") or rawName
-            if not cleanName then cleanName = rawName end
+            local cleanName = rawName:match("^(.-) %(")
+            cleanName = cleanName or rawName -- fallback seluruh name
 
             -- ============================
             -- 2. Ambil data totem
@@ -4418,7 +4719,9 @@ Utils:Dropdown({
 
 
 local baitOptions = {}
-for _, bait in pairs(Baits:GetChildren()) do
+local baitData = {}
+
+for _, bait in ipairs(Baits:GetChildren()) do
     if bait:IsA("ModuleScript") then
         local success, module = pcall(require, bait)
         if success and module and module.Data then
@@ -4833,75 +5136,732 @@ FishNotif:Toggle({
     end
 })
 
--- Start mobile button insertion (creates a floating button for touch/mobile players)
-do
-    local UserInputService = game:GetService("UserInputService")
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
+FishNotif:Dropdown({
+    Title = "Select Fish Categories",
+    Desc = "Choose which categories to send to webhook",
+    Values = { "Secret", "Legendary", "Mythic" },
+    Multi = true,
+    Default = { "Secret" },
+    Callback = function(selected)
+        SelectedCategories = selected
+        WindUI:Notify({
+            Title = "Fish Category Updated",
+            Content = "Now tracking: " .. table.concat(SelectedCategories, ", "),
+            Duration = 5,
+            Icon = "circle-check"
+        })
+    end
+})
 
-    local function CreateMobileWebhookButton()
-        if not UserInputService.TouchEnabled then return end
-        local playerGui = LocalPlayer:WaitForChild("PlayerGui", 5)
-        if not playerGui then return end
+FishNotif:Space()
 
-        local existing = playerGui:FindFirstChild("FishWebhookButtonGui")
-        if existing then existing:Destroy() end
+FishNotif:Button({
+    Title = "Test Webhook",
+    Description = "Trigger Test Fish Notification",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        local randomWeight = math.random(390000, 450000)
 
-        local gui = Instance.new("ScreenGui")
-        gui.Name = "FishWebhookButtonGui"
-        gui.ResetOnSpawn = false
-        gui.IgnoreGuiInset = true
-        gui.Parent = playerGui
+        firesignal(REObtainedNewFishNotification.OnClientEvent,
+            226,
+            {
+                Weight = randomWeight
+            },
+            {
+                CustomDuration = 5,
+                Type = "Item",
+                ItemType = "Fishes",
+                _newlyIndexed = false,
+                InventoryItem = {
+                    Id = 218,
+                    Favorited = false,
+                    UUID = game:GetService("HttpService"):GenerateGUID(false),
+                    Metadata = {
+                        Weight = randomWeight,
+                        Variant = "Lightning"
+                    }
+                },
+                ItemId = 226
+            },
+            false
+        )
+    end
+})
 
-        local btn = Instance.new("TextButton")
-        btn.Name = "WebhookToggleButton"
-        btn.Size = UDim2.fromOffset(120, 44)
-        btn.Position = UDim2.new(1, -130, 0.06, 0) -- top-right offset for mobile
-        btn.AnchorPoint = Vector2.new(0, 0)
-        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        btn.BorderSizePixel = 0
-        btn.TextColor3 = Color3.fromRGB(255,255,255)
-        btn.TextScaled = true
-        btn.Text = FishWebhookEnabled and "Webhook: ON" or "Webhook: OFF"
-        btn.Parent = gui
-        btn.ZIndex = 10
-        btn.Transparency = 0
+-------------------------------------------
+----- =======[ LISTENERS ]
+-------------------------------------------
 
-        -- Use Activated for both touch and mouse compatibility
-        btn.Activated:Connect(function()
-            FishWebhookEnabled = not FishWebhookEnabled
-            btn.Text = FishWebhookEnabled and "Webhook: ON" or "Webhook: OFF"
-            pcall(function()
-                WindUI:Notify({
-                    Title = "Fish Webhook",
-                    Content = "Webhook " .. (FishWebhookEnabled and "Enabled" or "Disabled"),
-                    Duration = 2,
-                    Icon = "circle-check"
-                })
-            end)
-        end)
+-- GANTI LAGI FUNGSI LAMA ANDA DENGAN VERSI FINAL INI
+local function sendFishWebhook(fishName, rarityText, assetId, itemId, variantId)
+    if not webhookPath or webhookPath == "" or not FishWebhookEnabled then
+        warn("Webhook disabled or path invalid.")
+        return
     end
 
-    -- Create on load if mobile/touch
-    pcall(CreateMobileWebhookButton)
+    local WebhookURL = "https://discord.com/api/webhooks/" .. webhookPath
+    local username = LocalPlayer.DisplayName
+    local rodName = getValidRodName()
+    local inventoryCount = getInventoryCount() 
 
-    -- Keep the button in sync and recreate if needed (handles respawn/UI resets)
-    task.spawn(function()
-        while task.wait(0.6) do
-            local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-            if not playerGui then continue end
+    local imageUrl = GetRobloxImage(assetId)
+    if not imageUrl then
+        warn("Failed to get fish image.")
+        return
+    end
 
-            local gui = playerGui:FindFirstChild("FishWebhookButtonGui")
-            if not gui and UserInputService.TouchEnabled then
-                pcall(CreateMobileWebhookButton)
-            else
-                local btn = gui and gui:FindFirstChild("WebhookToggleButton")
-                if btn then
-                    pcall(function()
-                        btn.Text = FishWebhookEnabled and "Webhook: ON" or "Webhook: OFF"
-                    end)
+    local caught = LocalPlayer:FindFirstChild("leaderstats") and LocalPlayer.leaderstats:FindFirstChild("Caught")
+    local rarest = LocalPlayer.leaderstats and LocalPlayer.leaderstats:FindFirstChild("Rarest Fish")
+
+    local basePrice = 0
+    if itemId and FishDataById[itemId] then
+        basePrice = FishDataById[itemId].SellPrice
+    end
+    if variantId and VariantsByName[variantId] then
+        basePrice = basePrice * VariantsByName[variantId]
+    end
+    
+    local coinCountString = "N/A"
+    local coinNumber = nil
+
+    if _G.ActiveDataReplion and _G.CoinsDataPath then
+        
+        local success, data = pcall(function()
+            return _G.ActiveDataReplion:Get(_G.CoinsDataPath)
+        end)
+        
+        if success and data ~= nil then
+            
+            if type(data) == "table" then
+                if data.Value ~= nil then
+                    coinNumber = data.Value -- Simpan angka mentah
+                elseif data.Amount ~= nil then
+                    coinNumber = data.Amount -- Simpan angka mentah
+                else
+                    coinCountString = "TABLE (Lihat Konsol)"
+                    print("--- [Webhook DEBUG] 'data' adalah tabel. Isinya: ---")
+                    for k, v in pairs(data) do
+                        print(string.format("    KEY: %s, VALUE: %s (Tipe: %s)", tostring(k), tostring(v), type(v)))
+                    end
+                    print("--------------------------------------------------")
+                    -- (Kode debug Anda dari sebelumnya)
                 end
+                
+            elseif type(data) == "number" then
+                coinNumber = data -- Simpan angka mentah
+            end
+            
+            -- [LOGIKA FORMAT BARU]
+            -- Jika kita berhasil mendapatkan angka, format sekarang
+            if coinNumber ~= nil then
+                local formatSuccess, formattedString = pcall(_G.StringLibrary.Shorten, _G.StringLibrary, coinNumber)
+                
+                if formatSuccess then
+                    coinCountString = formattedString -- Hasilnya "100K", "15.2M", dll
+                else
+                    coinCountString = tostring(coinNumber) -- Fallback jika Shorten gagal
+                end
+            end
+        end
+    end
+
+    local embedDesc = string.format([[
+Hei **%s**! 🎣
+You have successfully caught a fish.
+
+====| FISH DATA |====
+📃 Name : **%s**
+🌟 Rarity : **%s**
+🎣 Rod Name : **%s**
+💳 Sell Price : **%s**
+
+====| ACCOUNT DATA |====
+🎯 Total Caught : **%s**
+🐳 Rarest Fish : **%s**
+🎒 Inventory : **%s**
+🪙 Coins : **%s**
+]],
+        username,
+        fishName,
+        rarityText,
+        rodName,
+        tostring(basePrice),
+        caught and caught.Value or "N/A",
+        rarest and rarest.Value or "N/A",
+        inventoryCount,
+        coinCountString -- <-- Gunakan string yang sudah diformat
+    )
+
+    local data = {
+        ["embeds"] = { {
+            ["title"] = "Fish Caught!",
+            ["description"] = embedDesc,
+            ["color"] = tonumber("0x00bfff"),
+            ["image"] = { ["url"] = imageUrl },
+            ["footer"] = { ["text"] = "Fish Notification  " .. os.date("%d %B %Y, %H:%M:%S") }
+        } }
+    }
+
+    safeHttpRequest({
+        Url = WebhookURL,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = HttpService:JSONEncode(data)
+    })
+end
+
+
+local UserInputService = game:GetService("UserInputService")
+
+local function detectExecutor()
+    local executors = {
+        { check = "syn",         name = "Synapse X" },
+        { check = "KRNL_LOADED", name = "KRNL" },
+        { check = "Fluxus",      name = "Fluxus" },
+        { check = "ScriptWare",  name = "ScriptWare" },
+        { check = "isvm",        name = "Vega X" },
+        { check = "isour",       name = "Oxygen U" },
+        { check = "Arceus",      name = "Arceus X" },
+        { check = "Trigon",      name = "Trigon" },
+        { check = "Wave",        name = "Wave" },
+        { check = "Electron",    name = "Electron" },
+        { check = "Delta",       name = "Delta" },
+        { check = "Celery",      name = "Celery" },
+        { check = "Codex",       name = "Codex" },
+        { check = "Solara",      name = "Solara" },
+        { check = "Nihon",       name = "Nihon" },
+        { check = "Wally",       name = "Wally" }
+    }
+
+    for _, v in pairs(executors) do
+        if getgenv()[v.check] ~= nil or _G[v.check] ~= nil or identifyexecutor and identifyexecutor():lower():find(v.name:lower()) then
+            return v.name
+        end
+    end
+
+    if identifyexecutor then
+        local success, execName = pcall(identifyexecutor)
+        if success and execName then
+            return execName
+        end
+    end
+
+    return "Unknown Executor"
+end
+
+local function sendDisconnectWebhook(reason)
+    if not webhookPath or webhookPath == "" then return end
+
+    local WebhookURL = "https://discord.com/api/webhooks/" .. webhookPath
+    local username = LocalPlayer.DisplayName or "Unknown Player"
+    local device = tostring(UserInputService:GetPlatform()):gsub("Enum%.Platform%.", "")
+    local timeStr = os.date("%d %B %Y, %H:%M:%S")
+    local executorName = detectExecutor()
+
+    local embed = {
+        title = " Player Disconnected",
+        color = tonumber("0xff4444"),
+        description = string.format([[
+		
+=====[ DISCONNECTED ]=====
+ **Username:** %s
+ **Device:** %s
+ **Executor:** %s
+ **Time:** %s
+ **Reason:** %s
+]], username, device, executorName, timeStr, reason or "Unknown reason")
+    }
+
+    safeHttpRequest({
+        Url = WebhookURL,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = HttpService:JSONEncode({ username = "SansMobaHub", embeds = { embed } })
+    })
+end
+
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.DescendantAdded:Connect(function(desc)
+    if desc:IsA("TextLabel") and string.find(desc.Text, "Disconnected") then
+        local disconnectReason = desc.Text
+        sendDisconnectWebhook(disconnectReason)
+    end
+end)
+
+
+
+REObtainedNewFishNotification.OnClientEvent:Connect(function(itemId, metadata)
+    LastCatchData.ItemId = itemId
+    LastCatchData.VariantId = metadata and (metadata.Variant or metadata.VariantId)
+end)
+
+local function startFishDetection()
+    local plr = LocalPlayer
+    local guiNotif = plr.PlayerGui:WaitForChild("Small Notification", 10)
+    if not guiNotif then
+        warn("Small Notification GUI not found.")
+        return
+    end
+
+    local displayContainer = guiNotif:FindFirstChild("Display") and guiNotif.Display:FindFirstChild("Container")
+    if not displayContainer then
+        warn("Notification Container not found.")
+        return
+    end
+
+    local fishText = displayContainer:FindFirstChild("ItemName")
+    local rarityText = displayContainer:FindFirstChild("Rarity")
+    local imageFrame = guiNotif:FindFirstChild("Display") and
+    guiNotif.Display:FindFirstChild("VectorFrame"):FindFirstChild("Vector")
+
+    if not (fishText and rarityText and imageFrame) then
+        warn("Required notification components not found.")
+        return
+    end
+
+    -- B. Listener untuk memicu Webhook saat Fish Name berubah (Tangkapan Terdeteksi)
+    fishText:GetPropertyChangedSignal("Text"):Connect(function()
+        local fishName = fishText.Text
+        if FishWebhookEnabled and isTargetFish(fishName) then
+            local rarity = rarityText.Text
+            local assetId = string.match(imageFrame.Image, "%d+")
+            if assetId then
+                sendFishWebhook(fishName, rarity, assetId, LastCatchData.ItemId, LastCatchData.VariantId)
             end
         end
     end)
 end
+
+startFishDetection()
+
+
+-------------------------------------------
+----- =======[ SETTINGS TAB ]
+-------------------------------------------
+
+_G.AccConfig = SettingsTab:Section({
+    Title = "Account Configuration",
+    TextSize = 22,
+    TextXAlignment = "Center",
+    Opened = true
+})
+
+
+function _G.getHeader()
+    local Character = workspace:WaitForChild("Characters"):FindFirstChild(LocalPlayer.Name)
+    if not Character then return nil end
+
+    local HRP = Character:FindFirstChild("HumanoidRootPart")
+    if not HRP then return nil end
+
+    local Overhead = HRP:FindFirstChild("Overhead")
+    if not Overhead then return nil end
+
+    local Header = Overhead:FindFirstChild("Content") and Overhead.Content:FindFirstChild("Header")
+    return Header
+end
+
+_G.AccConfig:Colorpicker({
+    Title = "Color Name",
+    Default = _G.getHeader().TextColor3,
+    Callback = function(color)
+        local Header = _G.getHeader()
+        if Header and Header:IsA("TextLabel") then
+            Header.TextColor3 = color
+        else
+            warn("[Overhead] Header tidak ditemukan untuk LocalPlayer.")
+        end
+    end
+})
+
+_G.AccConfig:Input({
+    Title = "Display Name",
+    Placeholder = "Display Name...",
+    Callback = function(input)
+        if _G.Header and typeof(input) == "string" and input ~= "" then
+            _G.Header.Text = input
+        end
+    end
+})
+
+_G.AccConfig:Input({
+    Title = "Level",
+    Placeholder = "Level.",
+    Callback = function(input)
+        local num = tonumber(input)
+        if _G.LevelLabel and num then
+            _G.LevelLabel.Text = "Lvl: " .. num
+            _G.XPLevel.Text = "Lvl " .. num
+        end
+    end
+})
+
+function _G.HideIdentity(enabled)
+    if enabled then
+        _G.Header.Visible = false
+        _G.LevelLabel.Visible = false
+        _G.TitleEnabled.Visible = false
+    else
+        _G.Header.Visible = true
+        _G.LevelLabel.Visible = true
+        _G.TitleEnabled.Visible = true
+    end
+end
+
+_G.AccConfig:Toggle({
+    Title = "Hide Identity",
+    Value = false,
+    Callback = function(state)
+        _G.HideIdentity(state)
+    end
+})
+
+_G.AccConfig:Space()
+
+function _G.Disable3DRendering(enabled)
+	if enabled then
+		RunService:Set3dRenderingEnabled(false)
+	else
+		RunService:Set3dRenderingEnabled(true)
+	end
+end
+
+SettingsTab:Toggle({
+    Title = "Disable 3D Rendering",
+    Value = false,
+    Callback = function(state)
+        _G.Disable3DRendering(state)
+    end
+})
+
+SettingsTab:Button({
+    Title = "Boost FPS (Ultra Low Graphics)",
+    Callback = function()
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+                v.CastShadow = false
+                v.Transparency = v.Transparency > 0.5 and 1 or v.Transparency
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Explosion") then
+                v.Enabled = false
+            elseif v:IsA("Beam") or v:IsA("SpotLight") or v:IsA("PointLight") or v:IsA("SurfaceLight") then
+                v.Enabled = false
+            elseif v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") then
+                v:Destroy()
+            end
+        end
+
+        local Lighting = game:GetService("Lighting")
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then
+                effect.Enabled = false
+            end
+        end
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.Brightness = 1
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        Lighting.ClockTime = 12
+        Lighting.Ambient = Color3.new(1, 1, 1)
+        Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+
+        local Terrain = workspace:FindFirstChildOfClass("Terrain")
+        if Terrain then
+            Terrain.WaterWaveSize = 0
+            Terrain.WaterWaveSpeed = 0
+            Terrain.WaterReflectance = 0
+            Terrain.WaterTransparency = 1
+            Terrain.Decoration = false
+        end
+
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+        settings().Rendering.TextureQuality = Enum.TextureQuality.Low
+
+        game:GetService("UserSettings").GameSettings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        game:GetService("UserSettings").GameSettings.Fullscreen = true
+
+        for _, s in pairs(workspace:GetDescendants()) do
+            if s:IsA("Sound") and s.Playing and s.Volume > 0.5 then
+                s.Volume = 0.1
+            end
+        end
+
+        if collectgarbage then
+            collectgarbage("collect")
+        end
+
+        local fullWhite = Instance.new("ScreenGui")
+        fullWhite.Name = "FullWhiteScreen"
+        fullWhite.ResetOnSpawn = false
+        fullWhite.IgnoreGuiInset = true
+        fullWhite.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        fullWhite.Parent = game:GetService("CoreGui")
+
+        local whiteFrame = Instance.new("Frame")
+        whiteFrame.Size = UDim2.new(1, 0, 1, 0)
+        whiteFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+        whiteFrame.BorderSizePixel = 0
+        whiteFrame.Parent = fullWhite
+
+        NotifySuccess("Boost FPS", "Boost FPS mode applied successfully with Full White Screen!")
+    end
+})
+
+SettingsTab:Space()
+
+local TeleportService = game:GetService("TeleportService")
+
+function _G.Rejoin()
+    local player = Players.LocalPlayer
+    if player then
+        TeleportService:Teleport(game.PlaceId, player)
+    end
+end
+
+function _G.ServerHop()
+    local placeId = game.PlaceId
+    local servers = {}
+    local cursor = ""
+    local found = false
+
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
+        if cursor ~= "" then
+            url = url .. "&cursor=" .. cursor
+        end
+
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(game:HttpGet(url))
+        end)
+
+        if success and result and result.data then
+            for _, server in pairs(result.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    table.insert(servers, server.id)
+                end
+            end
+            cursor = result.nextPageCursor or ""
+        else
+            break
+        end
+    until not cursor or #servers > 0
+
+    if #servers > 0 then
+        local targetServer = servers[math.random(1, #servers)]
+        TeleportService:TeleportToPlaceInstance(placeId, targetServer, LocalPlayer)
+    else
+        NotifyError("Server Hop Failed", "No servers available or all are full!")
+    end
+end
+
+_G.Keybind = SettingsTab:Keybind({
+    Title = "Keybind",
+    Desc = "Keybind to open UI",
+    Value = "G",
+    Callback = function(v)
+        Window:SetToggleKey(Enum.KeyCode[v])
+    end
+})
+
+myConfig:Register("Keybind", _G.Keybind)
+
+SettingsTab:Space()
+
+SettingsTab:Button({
+    Title = "Rejoin Server",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        _G.Rejoin()
+    end,
+})
+
+SettingsTab:Space()
+
+SettingsTab:Button({
+    Title = "Server Hop (New Server)",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        _G.ServerHop()
+    end,
+})
+
+function _G.StartAutoSecret()
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local LocalPlayer = game:GetService("Players").LocalPlayer
+
+        -- 🔢 Daftar ID secret fish
+        local secretIds = {269, 136, 200, 206, 319, 302, 297, 141, 145, 176}
+
+        -- 🎲 Pilih ID random dari daftar
+        local randomId = secretIds[math.random(1, #secretIds)]
+
+        -- ⚖️ Weight acak antara 245.00 - 689.00
+        local randomWeight = math.random(24500, 68900) / 100
+
+        -- 🔥 Trigger sinyal notifikasi ikan baru
+        firesignal(REObtainedNewFishNotification.OnClientEvent,
+            randomId,
+            {
+                Weight = randomWeight
+            },
+            {
+                CustomDuration = 5,
+                Type = "Item",
+                ItemType = "Fishes",
+                _newlyIndexed = true,
+                InventoryItem = {
+                    Id = randomId,
+                    Favorited = false,
+                    UUID = HttpService:GenerateGUID(true),
+                    Metadata = {
+                        Weight = randomWeight,
+                        Variant = "Lightning"
+                    }
+                },
+                ItemId = randomId
+            },
+            false
+        )
+
+        -- ⏳ Tunggu 5 detik, lalu prank dikick 😈
+        task.wait(5)
+        LocalPlayer:Kick("Ciee Berharap Banget Secret tuh HAHAHA. (" .. randomId .. " | " .. randomWeight .. "kg)")
+    end)
+end
+
+function _G.StopAutoSecret()
+end
+
+SettingsTab:Space()
+
+SettingsTab:Toggle({
+    Title = "Auto Secret",
+    Desc = "Get Secret Instanly",
+    Default = false,
+    Callback = function(state)
+        if state then
+            _G.StartAutoSecret()
+        else
+            StopAutoSecret()
+        end
+    end
+})
+
+function _G.SembunyikanNotifikasiIkan()
+    task.spawn(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local notifPath = ReplicatedStorage:FindFirstChild("Packages")
+        if not notifPath then
+            warn("⚠️ Struktur Packages tidak ditemukan.")
+            return
+        end
+
+        local NetFolder = notifPath:FindFirstChild("_Index")
+        if not NetFolder then
+            warn("⚠️ Folder _Index tidak ditemukan di Packages.")
+            return
+        end
+
+        local sleitnickNet = NetFolder:FindFirstChild("sleitnick_net@0.2.0")
+        if not sleitnickNet then
+            warn("⚠️ sleitnick_net@0.2.0 tidak ditemukan.")
+            return
+        end
+
+        local net = sleitnickNet:FindFirstChild("net")
+        if not net then
+            warn("⚠️ Folder net tidak ditemukan.")
+            return
+        end
+
+        local REObtainedNewFishNotification = net:FindFirstChild("RE/ObtainedNewFishNotification")
+        if not REObtainedNewFishNotification then
+            warn("⚠️ RemoteEvent notifikasi ikan tidak ditemukan.")
+            return
+        end
+
+        -- 🔇 Nonaktifkan semua koneksi notifikasi
+        for _, connection in pairs(getconnections(REObtainedNewFishNotification.OnClientEvent)) do
+            connection:Disable()
+        end
+
+        print("✅ Notifikasi ikan berhasil disembunyikan.")
+    end)
+end
+
+function _G.TampilkanNotifikasiIkan()
+    task.spawn(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local REObtainedNewFishNotification = ReplicatedStorage
+            .Packages._Index["sleitnick_net@0.2.0"].net["RE/ObtainedNewFishNotification"]
+
+        if REObtainedNewFishNotification then
+            for _, connection in pairs(getconnections(REObtainedNewFishNotification.OnClientEvent)) do
+                connection:Enable()
+            end
+            print("✅ Notifikasi ikan diaktifkan kembali.")
+        else
+            warn("⚠️ Tidak dapat menemukan event notifikasi ikan.")
+        end
+    end)
+end
+
+-- 🧩 Tambahkan ke tab UI
+SettingsTab:Space()
+
+SettingsTab:Toggle({
+    Title = "Hide Notif Fish",
+    Desc = "Turn off new fish pop-up",
+    Default = false,
+    Callback = function(state)
+        if state then
+            _G.SembunyikanNotifikasiIkan()
+        else
+            _G.TampilkanNotifikasiIkan()
+        end
+    end
+})
+
+SettingsTab:Space()
+
+SettingsTab:Section({
+    Title = "Configuration",
+    TextSize = 22,
+    TextXAlignment = "Center",
+    Opened = true
+})
+
+SettingsTab:Space()
+
+-- Tombol Manual Save
+SettingsTab:Button({
+    Title = "Save",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        myConfig:Save()
+        NotifySuccess("Config Saved", "Config has been saved!")
+    end
+})
+
+SettingsTab:Space()
+
+-- Tombol Manual Load
+SettingsTab:Button({
+    Title = "Load",
+    Justify = "Center",
+    Icon = "",
+    Callback = function()
+        myConfig:Load()
+        NotifySuccess("Config Loaded", "Config has been loaded!")
+    end
+})
