@@ -9,15 +9,6 @@ local Window = WindUI:CreateWindow({
     Author = "XionTestingHub", -- Your name
     Folder = "XionTestinHub", -- Folder name in your Roblox-Data folder
     
-    
-    User = {
-        Enabled = true,
-        Anonymous = true,
-        Callback = function()
-            print("clicked")
-        end,
-    },
-     
 })
 
 local Tab = Window:Tab({
@@ -25,8 +16,3 @@ local Tab = Window:Tab({
     Icon = "crown", -- optional
     Locked = false,
 })
-
-    local ButtonTab = ElementsSection:Tab({
-        Title = "Button",
-        Icon = "mouse-pointer-click",
-    })
