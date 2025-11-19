@@ -17,8 +17,33 @@ local Window = WindUI:CreateWindow({
 })
 
 -- create home tab
-local Home = Window:CreateTab("Home")
+local Home = Window:CreateTab("Home") 
 
--- create features tab
-local Features = Window:CreateTab("Auto Fishing") 
+-- create home section
+local AutoFishing = Home:CreateSection("Auto Fishing") HomeSection
+
+-- function Auto Fishing
+    do
+        AutoFishing:CreateToggle({
+            Title = "Auto Fishing",
+            Description = "TEST FOR PURPOSE ONLY",
+            State = false,
+            Callback = function(State)
+                if State then
+                    getgenv().AutoFishing = true
+                    while getgenv().AutoFishing do
+                        wait()
+                        -- fishing logic here
+                        
+                    end
+                else
+                    getgenv().AutoFishing = false
+                end
+            end
+        })
+    end
+
+    function AutoFishing()
+        print("Auto Fishing Enabled")
+    end
 
