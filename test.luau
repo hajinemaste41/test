@@ -11,19 +11,19 @@ local Window = WindUI:CreateWindow({
     LoadingSubtitle = "by Xion",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "XionTestinHub", -- Create a custom folder for your hub/game
+        FolderName = "XionTestinHub", 
         FileName = "Configuration"
     }
 })
 
--- create home tab
+-- create tab
 local Home = Window:CreateTab("Home") 
 
 -- create home section
 local AutoFishing = Home:CreateSection("Auto Fishing") HomeSection
 
 -- function Auto Fishing
-    do
+
         AutoFishing:CreateToggle({
             Title = "Auto Fishing",
             Description = "TEST FOR PURPOSE ONLY",
@@ -41,7 +41,6 @@ local AutoFishing = Home:CreateSection("Auto Fishing") HomeSection
                 end
             end
         })
-    end
 
     function AutoFishing()
         print("Auto Fishing Enabled")
