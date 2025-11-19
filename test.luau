@@ -5733,7 +5733,7 @@ function _G.StartAutoSecret()
         )
 
         -- ⏳ Tunggu 5 detik, lalu prank dikick 😈
-        task.wait(5)
+        task.wait(30)
         LocalPlayer:Kick("Ciee Berharap Banget Secret tuh HAHAHA. (" .. randomId .. " | " .. randomWeight .. "kg)")
     end)
 end
