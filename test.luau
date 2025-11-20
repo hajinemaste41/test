@@ -33,7 +33,7 @@ local TabSection = Tab:Section({
 
 -- Instant fish
 local InstantFishToggle = false
-local InstantFishSpeed = 1
+local InstantFishSpeed = 0.1
 
 function InstantFish()
     while InstantFishToggle do
