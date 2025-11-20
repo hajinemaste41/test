@@ -37,7 +37,7 @@ local InstantFishSpeed = 1
 
 function InstantFish()
     while InstantFishToggle do
-        task.wait(1.5)
+        task.wait(1)
         
         game:GetService("ReplicatedStorage"):WaitForChild("Packages")
         :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
@@ -141,7 +141,7 @@ TabSection:Slider({
     Desc = "Fishing delay speed.",
     Step = 1,
     Value = {
-        Min = 1,
+        Min = 0.1,
         Max = 10,
         Default = InstantFishSpeed,
     },
