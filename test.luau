@@ -7,175 +7,177 @@ local Window = WindUI:CreateWindow({
     Author = "Xion testin hub",
 })
 
-local get = game:GetService("Players").LocalPlayer
+local Player = game:GetService("Players").LocalPlayer
 
--- Create Tabs
+
+-------------------------------------------------------
+-- TABS + PAGES
+-------------------------------------------------------
+
 local Tab = Window:Tab({
     Title = "Main",
     Icon = "crown",
-    Locked = false,
 })
 
 local Misc = Window:Tab({
     Title = "Misc",
     Icon = "setting",
-    Locked = false,
 })
 
--- Sections
-local TabSection = Tab:Section({
-    Title = "Auto Instant fishing",
+local MainSection = Tab:Section({
+    Title = "Main Page",
+    Icon = "crown",
 })
 
+local MiscSection = Misc:Section({
+    Title = "Misc Page",
+    Icon = "setting",
+})
+
+
 -------------------------------------------------------
--- FUNCTIONS
+-- MAIN > AUTO FISHING SECTION
 -------------------------------------------------------
 
--- Instant fish
-local InstantFishToggle = false
-local InstantFishSpeed = 0.1
+local AutoFishSection = Tab:Section({
+    Title = "Auto Fishing System",
+})
 
-function InstantFish()
-    while InstantFishToggle do
-        task.wait(1)
-        
-        game:GetService("ReplicatedStorage"):WaitForChild("Packages")
-        :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
-        :WaitForChild("net"):WaitForChild("RF/ChargeFishingRod"):InvokeServer()
+local AutoFish1 = false
+local AutoFish2 = false
 
-        local args = {
+local CancelDelay = 1.8
+local CompleteDelay = 1.53
+
+local RS = game:GetService("ReplicatedStorage"):WaitForChild("Packages")
+    :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
+    :WaitForChild("net")
+
+local ChargeRod = RS["RF/ChargeFishingRod"]
+local RequestMinigame = RS["RF/RequestFishingMinigameStarted"]
+local FishingComplete = RS["RE/FishingCompleted"]
+
+
+-------------------------------------------------------
+-- AUTO FISHING MODES
+-------------------------------------------------------
+
+function AutoFishingMode1()
+    while AutoFish1 do
+        task.wait(CancelDelay)
+
+        ChargeRod:InvokeServer()
+
+        RequestMinigame:InvokeServer(
             -0.5718746185302734,
             0.4597192119700099,
             1763573070.48863
-        }
+        )
 
-        game:GetService("ReplicatedStorage"):WaitForChild("Packages")
-        :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
-        :WaitForChild("net"):WaitForChild("RF/RequestFishingMinigameStarted"):InvokeServer(unpack(args))
-
-        task.wait(InstantFishSpeed)
-
-        game:GetService("ReplicatedStorage"):WaitForChild("Packages")
-        :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
-        :WaitForChild("net"):WaitForChild("RE/FishingCompleted"):FireServer()
+        task.wait(CompleteDelay)
+        FishingComplete:FireServer()
     end
 end
 
-function SellAllFish()
-    game:GetService("ReplicatedStorage"):WaitForChild("Packages")
-    :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
-    :WaitForChild("net"):WaitForChild("RF/SellAllItems"):InvokeServer()
+function AutoFishingMode2()
+    while AutoFish2 do
+        for i = 1, 20 do
+            FishingComplete:FireServer()
+        end
+        task.wait(CompleteDelay)
+    end
 end
 
-function FixStuckRod()
-    game:GetService("ReplicatedStorage"):WaitForChild("Packages")
-    :WaitForChild("_Index"):WaitForChild("sleitnick_net@0.2.0")
-    :WaitForChild("net"):WaitForChild("RE/FishingCompleted"):FireServer()
-end
 
 -------------------------------------------------------
--- TELEPORT SYSTEM
+-- AUTO FISHING UI
 -------------------------------------------------------
 
-local TeleportLocations = {
+AutoFishSection:Toggle({
+    Title = "Auto Fisher",
+    Desc = "Master toggle",
+    Icon = "fish",
+    Value = false,
+    Callback = function(state)
+        AutoFish1 = false
+        AutoFish2 = false
+    end
+})
+
+AutoFishSection:Textbox({
+    Title = "Cancel Delay",
+    Desc = "Example: 1.8",
+    Default = tostring(CancelDelay),
+    Callback = function(v)
+        if tonumber(v) then CancelDelay = tonumber(v) end
+    end
+})
+
+AutoFishSection:Textbox({
+    Title = "Complete Delay",
+    Desc = "Example: 1.53",
+    Default = tostring(CompleteDelay),
+    Callback = function(v)
+        if tonumber(v) then CompleteDelay = tonumber(v) end
+    end
+})
+
+AutoFishSection:Toggle({
+    Title = "Mode 1 (Legit)",
+    Desc = "Safe mode",
+    Icon = "shield",
+    Value = false,
+    Callback = function(state)
+        AutoFish1 = state
+        AutoFish2 = false
+        if state then task.spawn(AutoFishingMode1) end
+    end
+})
+
+AutoFishSection:Toggle({
+    Title = "Mode 2 (Blatant)",
+    Desc = "Fast mode",
+    Icon = "bolt",
+    Value = false,
+    Callback = function(state)
+        AutoFish2 = state
+        AutoFish1 = false
+        if state then task.spawn(AutoFishingMode2) end
+    end
+})
+
+AutoFishSection:Button({
+    Title = "Sell All Fish",
+    Callback = function()
+        RS["RF/SellAllItems"]:InvokeServer()
+    end
+})
+
+AutoFishSection:Button({
+    Title = "Fix Rod",
+    Callback = function()
+        FishingComplete:FireServer()
+    end
+})
+
+
+-------------------------------------------------------
+-- MISC > TELEPORT SECTION
+-------------------------------------------------------
+
+local TeleportSection = MiscSection:Section({
+    Title = "Teleport",
+})
+
+local Locations = {
     ["Kohana"] = Vector3.new(-597.4342651367188, 3.035492181777954, 758.4493408203125)
 }
 
 local SelectedLocation = "Kohana"
 
-function TeleportTo(locationName)
-    local root = get.Character and get.Character:FindFirstChild("HumanoidRootPart")
-    local target = TeleportLocations[locationName]
-
-    if root and target then
-        root.CFrame = CFrame.new(target)
-        print("Teleported to:", locationName)
-    else
-        warn("Teleport failed.")
-    end
-end
-
--------------------------------------------------------
--- PLAYER STATS (WalkSpeed + JumpPower)
--------------------------------------------------------
-
-local WalkSpeedValue = 16
-local JumpPowerValue = 50
-
-function ApplyWalkSpeed()
-    local humanoid = get.Character and get.Character:FindFirstChildWhichIsA("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = WalkSpeedValue
-    end
-end
-
-function ApplyJumpPower()
-    local humanoid = get.Character and get.Character:FindFirstChildWhichIsA("Humanoid")
-    if humanoid then
-        humanoid.JumpPower = JumpPowerValue
-    end
-end
-
--------------------------------------------------------
--- UI ITEMS
--------------------------------------------------------
-
--- Toggle instant fish
-TabSection:Toggle({
-    Title = "Auto Instant fishing",
-    Desc = "Automatically instant fish for you.",
-    Icon = "bird",
-    Type = "Checkbox",
-    Value = InstantFishToggle,
-    Callback = function(state)
-        InstantFishToggle = state
-        if InstantFishToggle then
-            InstantFish()
-        end
-    end
-})
-
--- Speed slider
-TabSection:Slider({
-    Title = "delay speed",
-    Desc = "Fishing delay speed.",
-    Step = 1,
-    Value = {
-        Min = 0.1,
-        Max = 10,
-        Default = InstantFishSpeed,
-    },
-    Callback = function(value)
-        InstantFishSpeed = value
-    end
-})
-
--- Buttons
-Tab:Button({
-    Title = "Sell All Fish",
-    Desc = "Sells all the fish in your inventory.",
-    Callback = SellAllFish
-})
-
-Tab:Button({
-    Title = "Fix Stuck Fishing Rod",
-    Desc = "Fix your stuck fishing rod.",
-    Callback = FixStuckRod
-})
-
--------------------------------------------------------
--- TELEPORT UI
--------------------------------------------------------
-
-local TeleportSection = Misc:Section({
-    Title = "Teleport",
-})
-
 TeleportSection:Dropdown({
     Title = "Select Location",
-    Desc = "Choose where to teleport.",
     Values = {"Kohana"},
-    Multi = false,
     Default = "Kohana",
     Callback = function(v)
         SelectedLocation = v
@@ -184,56 +186,46 @@ TeleportSection:Dropdown({
 
 TeleportSection:Button({
     Title = "Teleport",
-    Desc = "Teleport to selected location.",
     Callback = function()
-        TeleportTo(SelectedLocation)
+        local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.CFrame = CFrame.new(Locations[SelectedLocation])
+        end
     end
 })
 
+
 -------------------------------------------------------
--- PLAYER SECTION 
+-- MISC > PLAYER SECTION
 -------------------------------------------------------
 
-local PlayerSection = Misc:Section({
+local PlayerSection = MiscSection:Section({
     Title = "Player",
 })
 
+local WalkSpeedValue = 16
+local JumpPowerValue = 50
+
 PlayerSection:Slider({
     Title = "WalkSpeed",
-    Desc = "Adjust walking speed.",
+    Desc = "Run speed",
     Step = 1,
-    Value = {
-        Min = 10,
-        Max = 200,
-        Default = WalkSpeedValue,
-    },
+    Value = {Min = 10, Max = 200, Default = 16},
     Callback = function(v)
         WalkSpeedValue = v
+        local h = Player.Character and Player.Character:FindFirstChildWhichIsA("Humanoid")
+        if h then h.WalkSpeed = v end
     end
-})
-
-PlayerSection:Button({
-    Title = "Apply WalkSpeed",
-    Desc = "Apply WalkSpeed to your character.",
-    Callback = ApplyWalkSpeed
 })
 
 PlayerSection:Slider({
     Title = "JumpPower",
-    Desc = "Adjust jump strength.",
+    Desc = "Jump height",
     Step = 1,
-    Value = {
-        Min = 20,
-        Max = 300,
-        Default = JumpPowerValue,
-    },
+    Value = {Min = 20, Max = 300, Default = 50},
     Callback = function(v)
         JumpPowerValue = v
+        local h = Player.Character and Player.Character:FindFirstChildWhichIsA("Humanoid")
+        if h then h.JumpPower = v end
     end
-})
-
-PlayerSection:Button({
-    Title = "Apply JumpPower",
-    Desc = "Apply JumpPower to your character.",
-    Callback = ApplyJumpPower
 })
