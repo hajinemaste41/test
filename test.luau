@@ -9,9 +9,8 @@ local Window = WindUI:CreateWindow({
 
 local Player = game:GetService("Players").LocalPlayer
 
-
 -------------------------------------------------------
--- TABS + PAGES
+-- TABS
 -------------------------------------------------------
 
 local Tab = Window:Tab({
@@ -23,17 +22,6 @@ local Misc = Window:Tab({
     Title = "Misc",
     Icon = "setting",
 })
-
-local MainSection = Tab:Section({
-    Title = "Main Page",
-    Icon = "crown",
-})
-
-local MiscSection = Misc:Section({
-    Title = "Misc Page",
-    Icon = "setting",
-})
-
 
 -------------------------------------------------------
 -- MAIN > AUTO FISHING SECTION
@@ -56,7 +44,6 @@ local RS = game:GetService("ReplicatedStorage"):WaitForChild("Packages")
 local ChargeRod = RS["RF/ChargeFishingRod"]
 local RequestMinigame = RS["RF/RequestFishingMinigameStarted"]
 local FishingComplete = RS["RE/FishingCompleted"]
-
 
 -------------------------------------------------------
 -- AUTO FISHING MODES
@@ -88,17 +75,16 @@ function AutoFishingMode2()
     end
 end
 
-
 -------------------------------------------------------
 -- AUTO FISHING UI
 -------------------------------------------------------
 
 AutoFishSection:Toggle({
-    Title = "Auto Fisher",
-    Desc = "Master toggle",
+    Title = "Auto Fishing",
+    Desc = "Beta version",
     Icon = "fish",
     Value = false,
-    Callback = function(state)
+    Callback = function()
         AutoFish1 = false
         AutoFish2 = false
     end
@@ -160,12 +146,11 @@ AutoFishSection:Button({
     end
 })
 
-
 -------------------------------------------------------
 -- MISC > TELEPORT SECTION
 -------------------------------------------------------
 
-local TeleportSection = MiscSection:Section({
+local TeleportSection = Misc:Section({
     Title = "Teleport",
 })
 
@@ -194,12 +179,11 @@ TeleportSection:Button({
     end
 })
 
-
 -------------------------------------------------------
 -- MISC > PLAYER SECTION
 -------------------------------------------------------
 
-local PlayerSection = MiscSection:Section({
+local PlayerSection = Misc:Section({
     Title = "Player",
 })
 
